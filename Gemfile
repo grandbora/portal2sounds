@@ -1,5 +1,9 @@
 source 'https://rubygems.org'
 
+gem 'mechanize'
+gem 'soundcloud'
+
+
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.0.1'
 
@@ -43,3 +47,6 @@ end
 
 # Use debugger
 # gem 'debugger', group: [:development, :test]
+
+
+
