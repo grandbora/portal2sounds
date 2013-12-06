@@ -4,12 +4,40 @@ require 'soundcloud'
 namespace :scrape do
   desc "portal2sounds"
   task portal2sounds: :environment do
+    1.upto(27) do |i|
+      scrape_page(i)
+    end
+
+  end
+
+  desc "gets the users playlists"
+  task playlists: :environment do
+    client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
+    client.get('/me/playlists').each do |playlist|
+      puts "#{playlist.title} #{playlist.uri}"
+    end
+  end
+
+  desc "gets the users playlist"
+  task playlist: :environment do
+    client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
+    playlist = client.get(ENV['PLAYLIST_URI'])
+    tracks = playlist.tracks.map { |track| {:id => track.id} }
+    puts "#{tracks}"
+  end
+
+  private
+  def scrape_page(page_id)
+
+    puts "\n STARTING PAGE #{page_id} \n"
 
     client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
     home_page_mech = Mechanize.new
+    home_page_mech.history.clear
 
-    home_page_mech.get("http://www.portal2sounds.com/#p=1") do |page|
-      puts page.title
+    home_page_mech.get("http://www.portal2sounds.com/index.php?p=#{page_id}") do |page|
+
+      puts "\n #{page.title} \n "
 
       page.search("li.sound_list_item").each do |li|
         id = li.get_attribute("onclick").split("'")[1]
@@ -31,7 +59,7 @@ namespace :scrape do
         track = client.post('/tracks', :track => {
           :title => title,
           :asset_data => File.new(file_path, 'rb'),
-          :description => "by #{narrator}(#{narrator_url(narrator)}) \n hear at #{original_perma_link}",
+          :description => "by <a href='#{narrator_url(narrator)}'>#{narrator}</a>(#{narrator_url(narrator)}) \n hear at #{original_perma_link}",
           :genre => 'entertainment',
           :tag_list => "portal2sounds, portal2, #{narrator}",
           :artwork_data => artwork_data(narrator)
@@ -55,27 +83,12 @@ namespace :scrape do
         })
 
         puts "comment #{title} added"
+
+        puts "\n END OF TRACK #{id} \n"
       end
     end
   end
 
-  desc "gets the users playlists"
-  task playlists: :environment do
-    client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
-    client.get('/me/playlists').each do |playlist|
-      puts "#{playlist.title} #{playlist.uri}"
-    end
-  end
-
-  desc "gets the users playlist"
-  task playlist: :environment do
-    client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
-    playlist = client.get(ENV['PLAYLIST_URI'])
-    tracks = playlist.tracks.map { |track| {:id => track.id} }
-    puts "#{tracks}"
-  end
-
-  private
   def artwork_data(narrator)
     artwork_file = ([
       'caroline',
