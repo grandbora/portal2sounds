@@ -33,7 +33,6 @@ namespace :scrape do
 
     client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
     home_page_mech = Mechanize.new
-    home_page_mech.history.clear
 
     home_page_mech.get("http://www.portal2sounds.com/index.php?p=#{page_id}") do |page|
 
