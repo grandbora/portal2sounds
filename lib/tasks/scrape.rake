@@ -2,6 +2,9 @@ require 'mechanize'
 require 'soundcloud'
 
 namespace :scrape do
+
+  @soundcloud_client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
+
   desc "portal2sounds"
   task portal2sounds: :environment do
     1.upto(27) do |i|
@@ -12,27 +15,32 @@ namespace :scrape do
 
   desc "gets the users playlists"
   task playlists: :environment do
-    client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
-    client.get('/me/playlists').each do |playlist|
+    @soundcloud_client.get('/me/playlists').each do |playlist|
       puts "#{playlist.title} #{playlist.uri}"
     end
   end
 
   desc "gets the users playlist"
   task playlist: :environment do
-    client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
-    playlist = client.get(ENV['PLAYLIST_URI'])
+    playlist = @soundcloud_client.get(ENV['PLAYLIST_URI'])
     tracks = playlist.tracks.map { |track| {:id => track.id} }
     puts "#{tracks}"
   end
 
   desc "deletes the tracks in the playlist"
   task delete_tracks: :environment do
-    client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
-    playlist = client.get(ENV['PLAYLIST_URI'])
+    playlist = @soundcloud_client.get(ENV['PLAYLIST_URI'])
     playlist.tracks.map do |track|
-      puts client.delete("/tracks/#{track.id}")
+      puts @soundcloud_client.delete("/tracks/#{track.id}")
     end
+  end
+
+  desc "exchanges code to access token"
+  task exchange_token: :environment do
+    client = Soundcloud.new(:client_id => ENV['CLIENT_ID'],
+                            :client_secret => ENV['CLIENT_SECRET'],
+                            :redirect_uri => ENV['REDIRECT_URI'])
+    puts client.exchange_token(:code => ENV['CODE'])
   end
 
   private
@@ -40,66 +48,74 @@ namespace :scrape do
 
     puts "\n STARTING PAGE #{page_id} \n"
 
-    client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
     home_page_mech = Mechanize.new
-
     home_page_mech.get("http://www.portal2sounds.com/index.php?p=#{page_id}") do |page|
 
       puts "\n #{page.title} \n "
 
-      page.search("li.sound_list_item").each do |li|
-        id = li.get_attribute("onclick").split("'")[1]
-        title = li.search("a b").first.content
-        narrator = li.search(".whospan b").first.content
-        original_direct_link = "http://www.portal2sounds.com/sound.php?id=#{id}"
-        original_perma_link = "http://www.portal2sounds.com/#{id}"
-        file_name = title[0..25].downcase.gsub(/[^0-9a-z ]/i, '').gsub(' ', '-')
-        file_path = "public/downloads/#{file_name}-#{id}.mp3"
-        purchase_url = "http://store.steampowered.com/app/620/"
-        purchase_title = "Buy PORTAL 2 on steam"
-
-        puts "downloading file #{file_path} from #{original_direct_link}"
-
-        direct_page_mech = Mechanize.new
-        direct_page_mech.pluggable_parser.default = Mechanize::Download
-        direct_page_mech.get(original_direct_link).save(file_path)
-
-        puts "file #{file_path} saved"
-
-        track = client.post('/tracks', :track => {
-          :title => title,
-          :asset_data => File.new(file_path, 'rb'),
-          :description => "by <a href='#{narrator_url(narrator)}'>#{narrator}</a>(#{narrator_url(narrator)}) \n hear at #{original_perma_link}",
-          :genre => 'entertainment',
-          :tag_list => "portal2sounds, portal2, #{narrator}",
-          :downloadable => true,
-          :artwork_data => artwork_data(narrator),
-          :purchase_url => purchase_url,
-          :purchase_title => purchase_title
-        })
-
-        puts "file #{file_path} uploaded, permalink_url #{track.permalink_url}"
-
-        playlist = client.get(ENV['PLAYLIST_URI'])
-        tracks_ids = playlist.tracks.map { |track| {:id => track.id} }
-        tracks_ids.push({:id => track.id})
-
-        client.put(ENV['PLAYLIST_URI'], :playlist => {
-          :tracks => tracks_ids
-        })
-
-        puts "track #{title} added to playlist"
-
-        client.post("/tracks/#{track.id}/comments", :comment => {
-          :body => title,
-          :timestamp => 10
-        })
-
-        puts "comment #{title} added"
-
-        puts "\n END OF TRACK #{id} \n"
+      page.search("li.sound_list_item").each_with_index do |li, i|
+        begin
+          scrape_track(li, i ,page_id)
+        rescue => e
+          puts "===========EXCEPTION RECEIVED=========== \n #{e}"
+        end
       end
     end
+  end
+
+  def scrape_track(li, i, page_id)
+    id = li.get_attribute("onclick").split("'")[1]
+    title = li.search("a b").first.content
+    narrator = li.search(".whospan b").first.content
+    original_direct_link = "http://www.portal2sounds.com/sound.php?id=#{id}"
+    original_perma_link = "http://www.portal2sounds.com/#{id}"
+    file_name = title[0..25].downcase.gsub(/[^0-9a-z ]/i, '').gsub(' ', '-')
+    file_path = "public/downloads/#{file_name}-#{id}.mp3"
+    purchase_url = "http://store.steampowered.com/app/620/"
+    purchase_title = "Buy PORTAL 2 on steam"
+
+    puts "\n Track #{page_id} - #{i} \n "
+
+    puts "downloading file #{file_path} from #{original_direct_link}"
+
+    direct_page_mech = Mechanize.new
+    direct_page_mech.pluggable_parser.default = Mechanize::Download
+    direct_page_mech.get(original_direct_link).save(file_path)
+
+    puts "file #{file_path} saved"
+
+    track = @soundcloud_client.post('/tracks', :track => {
+      :title => title,
+      :asset_data => File.new(file_path, 'rb'),
+      :description => "by <a href='#{narrator_url(narrator)}'>#{narrator}</a>(#{narrator_url(narrator)}) \n hear at #{original_perma_link}",
+      :genre => 'entertainment',
+      :tag_list => "portal2sounds, portal2, #{narrator}",
+      :downloadable => true,
+      :artwork_data => artwork_data(narrator),
+      :purchase_url => purchase_url,
+      :purchase_title => purchase_title
+    })
+
+    puts "file #{file_path} uploaded, permalink_url #{track.permalink_url}"
+
+    playlist = @soundcloud_client.get(ENV['PLAYLIST_URI'])
+    tracks_ids = playlist.tracks.map { |track| {:id => track.id} }
+    tracks_ids.push({:id => track.id})
+
+    @soundcloud_client.put(ENV['PLAYLIST_URI'], :playlist => {
+      :tracks => tracks_ids
+    })
+
+    puts "track #{title} added to playlist"
+
+    @soundcloud_client.post("/tracks/#{track.id}/comments", :comment => {
+      :body => title,
+      :timestamp => 10
+    })
+
+    puts "comment #{title} added"
+
+    puts "\n END OF TRACK #{id} \n"
   end
 
   def artwork_data(narrator)
@@ -118,7 +134,6 @@ namespace :scrape do
   end
 
   def narrator_url(narrator)
-
     case narrator.downcase
       when 'announcer'        then "http://theportalwiki.com/wiki/Announcer"
       when 'caroline'         then "http://theportalwiki.com/wiki/Caroline"
