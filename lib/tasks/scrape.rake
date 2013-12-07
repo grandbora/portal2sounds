@@ -53,8 +53,8 @@ namespace :scrape do
         narrator = li.search(".whospan b").first.content
         original_direct_link = "http://www.portal2sounds.com/sound.php?id=#{id}"
         original_perma_link = "http://www.portal2sounds.com/#{id}"
-
-        file_path = "public/downloads/#{id}.mp3"
+        file_name = title.downcase.gsub(/[^0-9a-z ]/i, '').gsub(' ', '-')
+        file_path = "public/downloads/#{file_name}-#{id}.mp3"
 
         puts "downloading file #{file_path} from #{original_direct_link}"
 
