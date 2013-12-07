@@ -55,6 +55,8 @@ namespace :scrape do
         original_perma_link = "http://www.portal2sounds.com/#{id}"
         file_name = title[0..25].downcase.gsub(/[^0-9a-z ]/i, '').gsub(' ', '-')
         file_path = "public/downloads/#{file_name}-#{id}.mp3"
+        purchase_url = "http://store.steampowered.com/app/620/"
+        purchase_title = "Buy PORTAL 2 on steam"
 
         puts "downloading file #{file_path} from #{original_direct_link}"
 
@@ -71,7 +73,9 @@ namespace :scrape do
           :genre => 'entertainment',
           :tag_list => "portal2sounds, portal2, #{narrator}",
           :downloadable => true,
-          :artwork_data => artwork_data(narrator)
+          :artwork_data => artwork_data(narrator),
+          :purchase_url => purchase_url,
+          :purchase_title => purchase_title
         })
 
         puts "file #{file_path} uploaded, permalink_url #{track.permalink_url}"
