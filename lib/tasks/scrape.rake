@@ -26,6 +26,15 @@ namespace :scrape do
     puts "#{tracks}"
   end
 
+  desc "deletes the tracks in the playlist"
+  task delete_tracks: :environment do
+    client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
+    playlist = client.get(ENV['PLAYLIST_URI'])
+    playlist.tracks.map do |track|
+      puts client.delete("/tracks/#{track.id}")
+    end
+  end
+
   private
   def scrape_page(page_id)
 
@@ -61,6 +70,7 @@ namespace :scrape do
           :description => "by <a href='#{narrator_url(narrator)}'>#{narrator}</a>(#{narrator_url(narrator)}) \n hear at #{original_perma_link}",
           :genre => 'entertainment',
           :tag_list => "portal2sounds, portal2, #{narrator}",
+          :downloadable => true,
           :artwork_data => artwork_data(narrator)
         })
 
