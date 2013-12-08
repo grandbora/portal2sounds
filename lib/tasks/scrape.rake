@@ -4,75 +4,125 @@ require 'soundcloud'
 namespace :scrape do
 
   @soundcloud_client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
+  portal2_characters = {
+    :announcer => {
+      :url => "http://theportalwiki.com/wiki/Announcer"
+    },
+    :caroline => {
+      :url => "http://theportalwiki.com/wiki/Caroline"
+    },
+    :cave_johnson => {
+      :url => "http://en.wikipedia.org/wiki/Cave_Johnson_(Portal)"
+    },
+    :cave_prime => {
+      :url => "http://en.wikipedia.org/wiki/Cave_Johnson_(Portal)"
+    },
+    :alternate_cave => {
+      :url => "http://en.wikipedia.org/wiki/Cave_Johnson_(Portal)"
+    },
+    :core_1 => {
+      :url => "http://theportalwiki.com/wiki/Cores"
+    },
+    :core_2 => {
+      :url => "http://theportalwiki.com/wiki/Cores"
+    },
+    :defective_turret => {
+      :url => "http://theportalwiki.com/wiki/Defective_Turret"
+    },
+    :glados => {
+      :url => "http://en.wikipedia.org/wiki/GLaDOS"
+    },
+    :turret => {
+      :url => "http://theportalwiki.com/wiki/Turrets"
+    },
+    :wheatley => {
+      :url => "http://en.wikipedia.org/wiki/Wheatley_(Portal)"
+    }
+  }.with_indifferent_access
 
-  desc "portal2sounds"
-  task portal2sounds: :environment do
-    1.upto(27) do |i|
-      scrape_page(i)
-    end
+#
+#
+#
+# TODO FILL METADATA
+#
+#
+#
 
-  end
+  @metadata ={
+    :portal2 => {
+      :dir_name => "portal2",
+      :playlist_uri => ENV["PLAYLIST_URI"],
+      :base_url => "http://www.portal2sounds.com/",
+      :purchase_url => "http://store.steampowered.com/app/620/",
+      :purchase_title => "Buy PORTAL 2 on steam",
+      :default_artwork => "portal2.png",
+      :default_tags => "portal2, portal2sounds, portal2quotes, \"Valve Games\"",
+      :characters => portal2_characters
+    },
+    :portal2dlc => {
+      :dir_name => "portal2dlc",
+      :playlist_uri => ENV["PLAYLIST_URI"],
+      :base_url => "http://dlc.portal2sounds.com/",
+      :purchase_url => "http://store.steampowered.com/app/620/",
+      :purchase_title => "Buy PORTAL 2 on steam",
+      :default_artwork => "portal2.png",
+      :default_tags => "portal2, portal2sounds, portal2quotes",
+      :characters => portal2_characters
+    },
+    :portal2pti => {
+      :dir_name => "portal2pti",
+      :playlist_uri => ENV["PLAYLIST_URI"],
+      :base_url => "http://dlc2.portal2sounds.com/",
+      :purchase_url => "http://store.steampowered.com/app/620/",
+      :purchase_title => "Buy PORTAL 2 on steam",
+      :default_artwork => "portal2.png",
+      :default_tags => "portal2, portal2sounds, portal2quotes",
+      :characters => portal2_characters
+    }
+  }
 
-  desc "gets the users playlists"
-  task playlists: :environment do
-    @soundcloud_client.get('/me/playlists').each do |playlist|
-      puts "#{playlist.title} #{playlist.uri}"
-    end
-  end
-
-  desc "gets the users playlist"
-  task playlist: :environment do
-    playlist = @soundcloud_client.get(ENV['PLAYLIST_URI'])
-    tracks = playlist.tracks.map { |track| {:id => track.id} }
-    puts "#{tracks}"
-  end
-
-  desc "deletes the tracks in the playlist"
-  task delete_tracks: :environment do
-    playlist = @soundcloud_client.get(ENV['PLAYLIST_URI'])
-    playlist.tracks.map do |track|
-      puts @soundcloud_client.delete("/tracks/#{track.id}")
-    end
-  end
-
-  desc "exchanges code to access token"
-  task exchange_token: :environment do
-    client = Soundcloud.new(:client_id => ENV['CLIENT_ID'],
-                            :client_secret => ENV['CLIENT_SECRET'],
-                            :redirect_uri => ENV['REDIRECT_URI'])
-    puts client.exchange_token(:code => ENV['CODE'])
+  desc "scrape web_site"
+  task :web_site, [:web_site, :page_count] do |t, args|
+    metadata = @metadata.with_indifferent_access[args.web_site]
+    scrape_web_site(args.page_count.to_i, metadata)
   end
 
   private
-  def scrape_page(page_id)
+  def scrape_web_site(page_count, metadata)
+    1.upto(page_count) do |i|
+      scrape_page(i, metadata)
+    end
+  end
+
+  def scrape_page(page_id, metadata)
 
     puts "\n STARTING PAGE #{page_id} \n"
 
     home_page_mech = Mechanize.new
-    home_page_mech.get("http://www.portal2sounds.com/index.php?p=#{page_id}") do |page|
+    home_page_mech.get("#{metadata[:base_url]}index.php?p=#{page_id}") do |page|
 
       puts "\n #{page.title} \n "
 
       page.search("li.sound_list_item").each_with_index do |li, i|
         begin
-          scrape_track(li, i ,page_id)
+          scrape_track(li, i, page_id, metadata)
         rescue => e
-          puts "===========EXCEPTION RECEIVED=========== \n #{e}"
+          puts "===========EXCEPTION RECEIVED=========== \n #{e} \n #{e.message} \n #{e.inspect} \n #{e.backtrace}"
         end
       end
     end
   end
 
-  def scrape_track(li, i, page_id)
+  def scrape_track(li, i, page_id, metadata)
     id = li.get_attribute("onclick").split("'")[1]
-    title = li.search("a b").first.content
+    text = li.search("a b").first.content
     narrator = li.search(".whospan b").first.content
-    original_direct_link = "http://www.portal2sounds.com/sound.php?id=#{id}"
-    original_perma_link = "http://www.portal2sounds.com/#{id}"
-    file_name = title[0..25].downcase.gsub(/[^0-9a-z ]/i, '').gsub(' ', '-')
-    file_path = "public/downloads/#{file_name}-#{id}.mp3"
-    purchase_url = "http://store.steampowered.com/app/620/"
-    purchase_title = "Buy PORTAL 2 on steam"
+    narrator_url, narrator_artwork = narrator_metada(narrator, metadata)
+    track_title = "#{narrator}: #{text}"
+    original_direct_link = "#{metadata[:base_url]}sound.php?id=#{id}&stream"
+    original_perma_link = "#{metadata[:base_url]}#{id}"
+    file_name_part = text[0..25].downcase.gsub(/[^0-9a-z ]/i, '').gsub(' ', '-')
+    file_path = "public/downloads/#{file_name_part}-#{id}.mp3"
 
     puts "\n Track #{page_id} - #{i} \n "
 
@@ -85,66 +135,47 @@ namespace :scrape do
     puts "file #{file_path} saved"
 
     track = @soundcloud_client.post('/tracks', :track => {
-      :title => title,
+      :title => track_title,
       :asset_data => File.new(file_path, 'rb'),
-      :description => "by <a href='#{narrator_url(narrator)}'>#{narrator}</a>(#{narrator_url(narrator)}) \n hear at #{original_perma_link}",
+      :description => "by <a href='#{narrator_url}'>#{narrator}</a>(#{narrator_url}) \n hear at #{original_perma_link}",
       :genre => 'entertainment',
-      :tag_list => "portal2sounds, portal2, #{narrator}",
+      :tag_list => "#{metadata[:default_tags]} , \" #{narrator} \" ",
       :downloadable => true,
-      :artwork_data => artwork_data(narrator),
-      :purchase_url => purchase_url,
-      :purchase_title => purchase_title
+      :artwork_data => narrator_artwork,
+      :purchase_url => metadata[:purchase_url],
+      :purchase_title => metadata[:purchase_title]
     })
 
     puts "file #{file_path} uploaded, permalink_url #{track.permalink_url}"
 
-    playlist = @soundcloud_client.get(ENV['PLAYLIST_URI'])
+    playlist = @soundcloud_client.get(metadata[:playlist_uri])
     tracks_ids = playlist.tracks.map { |track| {:id => track.id} }
     tracks_ids.push({:id => track.id})
 
-    @soundcloud_client.put(ENV['PLAYLIST_URI'], :playlist => {
+    @soundcloud_client.put(metadata[:playlist_uri], :playlist => {
       :tracks => tracks_ids
     })
 
-    puts "track #{title} added to playlist"
+    puts "track #{track_title} added to playlist"
 
     @soundcloud_client.post("/tracks/#{track.id}/comments", :comment => {
-      :body => title,
+      :body => text,
       :timestamp => 10
     })
 
-    puts "comment #{title} added"
+    puts "comment #{text} added"
 
     puts "\n END OF TRACK #{id} \n"
   end
 
-  def artwork_data(narrator)
-    artwork_file = ([
-      'caroline',
-      'cave johnson',
-      'core 1',
-      'core 2',
-      'defective turret',
-      'glados',
-      'turret',
-      'wheatley'
-    ].include? narrator.downcase) ? "#{narrator}.jpg" : "portal2.png"
+  def narrator_metada(narrator, metadata)
 
-    File.new("public/artworks/#{artwork_file}", 'rb')
-  end
-
-  def narrator_url(narrator)
-    case narrator.downcase
-      when 'announcer'        then "http://theportalwiki.com/wiki/Announcer"
-      when 'caroline'         then "http://theportalwiki.com/wiki/Caroline"
-      when 'cave johnson'     then "http://en.wikipedia.org/wiki/Cave_Johnson_(Portal)"
-      when 'core 1'           then "http://theportalwiki.com/wiki/Cores"
-      when 'core 2'           then "http://theportalwiki.com/wiki/Cores"
-      when 'defective turret' then "http://theportalwiki.com/wiki/Defective_Turret"
-      when 'glados'           then "http://en.wikipedia.org/wiki/GLaDOS"
-      when 'turret'           then "http://theportalwiki.com/wiki/Turrets"
-      when 'wheatley'         then "http://en.wikipedia.org/wiki/Wheatley_(Portal)"
-      else ""
-    end
+    normalized_narrator_name = narrator.downcase.gsub(' ', '_')
+    artwork_file = (metadata[:characters].keys.include? normalized_narrator_name) ?
+                    "#{normalized_narrator_name}.jpg" : metadata[:default_artwork]
+    [
+      metadata[:characters][normalized_narrator_name][:url],
+      File.new("public/artworks/#{metadata[:dir_name]}/#{artwork_file}", 'rb')
+    ]
   end
 end
