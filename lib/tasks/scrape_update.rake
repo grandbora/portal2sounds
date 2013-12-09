@@ -54,7 +54,7 @@ namespace :scrape do
 #
 #
 
-  metadata_container ={
+  @metadata_container_update ={
     :portal2 => {
       :dir_name => "portal2",
       :playlist_uri => ENV["PLAYLIST_URI"],
@@ -103,7 +103,7 @@ namespace :scrape do
     end
   end
   def update_track(track)
-    metadata = metadata_container[:portal2]
+    metadata = @metadata_container_update[:portal2]
     original_perma_link = track[:description].match(/.*hear at (http:\/\/www.portal2sounds.com\/\d+)$/)[1]
     narrator = track[:description][/<a.*>.*<\/a>/].match(/>(.*)</)[1]
     narrator_url, narrator_artwork = narrator_metada(narrator, metadata)
