@@ -101,10 +101,8 @@ namespace :scrape do
       page.search("li.sound_list_item").each_with_index do |li, i|
         begin
           scrape_track(li, i, page_id, metadata)
-          abort
         rescue => e
           puts "===========EXCEPTION RECEIVED=========== \n #{e} \n #{e.message} \n #{e.inspect} \n #{e.backtrace} \n \n #{li}"
-          abort
         end
       end
     end
