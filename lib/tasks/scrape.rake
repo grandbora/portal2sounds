@@ -32,6 +32,15 @@ namespace :scrape do
     :core_4 => {
       :url => "http://theportalwiki.com/wiki/Cores"
     },
+    :curiosity_sphere => {
+      :url => "http://theportalwiki.com/wiki/Cores"
+    },
+    :cake_sphere => {
+      :url => "http://theportalwiki.com/wiki/Cores"
+    },
+    :aggressive_sphere => {
+      :url => "http://theportalwiki.com/wiki/Cores"
+    },
     :defective_turret => {
       :url => "http://theportalwiki.com/wiki/Defective_Turret"
     },
@@ -72,6 +81,15 @@ namespace :scrape do
       :purchase_title => "Buy PORTAL 2 on steam",
       :default_artwork => "portal2.png",
       :default_tags => "\"Portal 2 Perpetual Testing Initiative\", portal2peti, portal2, portal2quotes, portal2sounds, \"Valve Games\", electronic",
+      :characters => portal2_characters
+    },
+    :portal1 => {
+      :dir_name => "portal2",
+      :base_url => "http://p1.portal2sounds.com/",
+      :purchase_url => "http://store.steampowered.com/app/400/",
+      :purchase_title => "Buy PORTAL on steam",
+      :default_artwork => "portal.jpg",
+      :default_tags => "\"Portal\", portal1, portalquotes, \"Valve Games\", electronic",
       :characters => portal2_characters
     }
   }

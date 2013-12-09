@@ -49,7 +49,6 @@ namespace :scrape do
   @metadata_container_update ={
     :portal2 => {
       :dir_name => "portal2",
-      :playlist_uri => ENV["PLAYLIST_URI"],
       :base_url => "http://www.portal2sounds.com/",
       :purchase_url => "http://store.steampowered.com/app/620/",
       :purchase_title => "Buy PORTAL 2 on steam",

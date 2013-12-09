@@ -31,7 +31,8 @@ namespace :scrape do
   desc "edit playlist"
   task edit_playlist: :environment do
     puts @soundcloud_client.put(ENV['PLAYLIST_URI'], :playlist => {
-      :tag_list => "electronic, entertainment, portal2, portal2quotes, portal2sounds, \"Valve Games\""
+      :purchase_url => "http://store.steampowered.com/app/620/",
+      :purchase_title => "Buy PORTAL 2 on steam"
     })
   end
 
