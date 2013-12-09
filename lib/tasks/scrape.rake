@@ -46,14 +46,6 @@ namespace :scrape do
     }
   }.with_indifferent_access
 
-#
-#
-#
-# TODO FILL METADATA
-#
-#
-#
-
   metadata_container = {
     :portal2dlc => {
       :dir_name => "portal2",
@@ -74,12 +66,12 @@ namespace :scrape do
       :characters => portal2_characters
     },
     :portal2pti => {
-      :dir_name => "portal2pti",
+      :dir_name => "portal2",
       :base_url => "http://dlc2.portal2sounds.com/",
       :purchase_url => "http://store.steampowered.com/app/620/",
-      :purchase_title => "Buy PORTAL 2 on steam",
+      :purchase_title => "Buy PORTAL 2 PeTI on steam",
       :default_artwork => "portal2.png",
-      :default_tags => "portal2, portal2sounds, portal2quotes",
+      :default_tags => "\"Portal 2 Perpetual Testing Initiative\", portal2peti, portal2, portal2quotes, portal2sounds, \"Valve Games\", electronic",
       :characters => portal2_characters
     }
   }
