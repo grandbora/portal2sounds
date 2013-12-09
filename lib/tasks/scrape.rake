@@ -26,6 +26,12 @@ namespace :scrape do
     :core_2 => {
       :url => "http://theportalwiki.com/wiki/Cores"
     },
+    :core_3 => {
+      :url => "http://theportalwiki.com/wiki/Cores"
+    },
+    :core_4 => {
+      :url => "http://theportalwiki.com/wiki/Cores"
+    },
     :defective_turret => {
       :url => "http://theportalwiki.com/wiki/Defective_Turret"
     },
@@ -48,10 +54,18 @@ namespace :scrape do
 #
 #
 
-  @metadata ={
+  metadata_container = {
+    :portal2dlc => {
+      :dir_name => "portal2",
+      :base_url => "http://dlc.portal2sounds.com/",
+      :purchase_url => "http://store.steampowered.com/app/620/",
+      :purchase_title => "Buy PORTAL 2 on steam",
+      :default_artwork => "portal2.png",
+      :default_tags => "\"Portal 2 In Motion\", portal2, portal2quotes, portal2sounds, \"Valve Games\", electronic",
+      :characters => portal2_characters
+    },
     :portal2 => {
       :dir_name => "portal2",
-      :playlist_uri => ENV["PLAYLIST_URI"],
       :base_url => "http://www.portal2sounds.com/",
       :purchase_url => "http://store.steampowered.com/app/620/",
       :purchase_title => "Buy PORTAL 2 on steam",
@@ -59,19 +73,8 @@ namespace :scrape do
       :default_tags => "portal2, portal2quotes, portal2sounds, \"Valve Games\", electronic",
       :characters => portal2_characters
     },
-    :portal2dlc => {
-      :dir_name => "portal2dlc",
-      :playlist_uri => ENV["PLAYLIST_URI"],
-      :base_url => "http://dlc.portal2sounds.com/",
-      :purchase_url => "http://store.steampowered.com/app/620/",
-      :purchase_title => "Buy PORTAL 2 on steam",
-      :default_artwork => "portal2.png",
-      :default_tags => "portal2, portal2sounds, portal2quotes",
-      :characters => portal2_characters
-    },
     :portal2pti => {
       :dir_name => "portal2pti",
-      :playlist_uri => ENV["PLAYLIST_URI"],
       :base_url => "http://dlc2.portal2sounds.com/",
       :purchase_url => "http://store.steampowered.com/app/620/",
       :purchase_title => "Buy PORTAL 2 on steam",
@@ -83,7 +86,7 @@ namespace :scrape do
 
   desc "scrape web_site"
   task :web_site, [:web_site, :page_count] do |t, args|
-    metadata = @metadata.with_indifferent_access[args.web_site]
+    metadata = metadata_container.with_indifferent_access[args.web_site]
     scrape_web_site(args.page_count.to_i, metadata)
   end
 
@@ -123,6 +126,8 @@ namespace :scrape do
     original_perma_link = "#{metadata[:base_url]}#{id}"
     file_name_part = text[0..25].downcase.gsub(/[^0-9a-z ]/i, '').gsub(' ', '-')
     file_path = "public/downloads/#{file_name_part}-#{id}.mp3"
+    description = narrator_url ? "by <a href='#{narrator_url}'>#{narrator}</a>" : "by #{narrator}"
+    description += " \n this content is provided by #{metadata[:base_url][0..-2]} \n hear at #{original_perma_link}"
 
     puts "\n Track #{page_id} - #{i} \n "
 
@@ -137,7 +142,7 @@ namespace :scrape do
     track = @soundcloud_client.post('/tracks', :track => {
       :title => track_title,
       :asset_data => File.new(file_path, 'rb'),
-      :description => "by <a href='#{narrator_url}'>#{narrator}</a>(#{narrator_url}) \n this content is provided by #{metadata[:base_url][0..-2]} \n hear at #{original_perma_link}",
+      :description => description,
       :genre => 'entertainment',
       :tag_list => "#{metadata[:default_tags]} , \" #{narrator} \" ",
       :downloadable => true,
@@ -147,16 +152,6 @@ namespace :scrape do
     })
 
     puts "file #{file_path} uploaded, permalink_url #{track.permalink_url}"
-
-    playlist = @soundcloud_client.get(metadata[:playlist_uri])
-    tracks_ids = playlist.tracks.map { |track| {:id => track.id} }
-    tracks_ids.push({:id => track.id})
-
-    @soundcloud_client.put(metadata[:playlist_uri], :playlist => {
-      :tracks => tracks_ids
-    })
-
-    puts "track #{track_title} added to playlist"
 
     @soundcloud_client.post("/tracks/#{track.id}/comments", :comment => {
       :body => text,
@@ -172,9 +167,12 @@ namespace :scrape do
     normalized_narrator_name = narrator.downcase.gsub(' ', '_')
     artwork_file = (metadata[:characters].keys.include? normalized_narrator_name) ?
                     "#{normalized_narrator_name}.jpg" : metadata[:default_artwork]
+    narrator_url = (metadata[:characters].keys.include? normalized_narrator_name) ?
+                    metadata[:characters][normalized_narrator_name][:url] : false
+
 
     [
-      metadata[:characters][normalized_narrator_name][:url],
+      narrator_url,
       File.new("public/artworks/#{metadata[:dir_name]}/#{artwork_file}", 'rb')
     ]
   end
