@@ -31,10 +31,7 @@ namespace :scrape do
   desc "edit playlist"
   task edit_playlist: :environment do
     puts @soundcloud_client.put(ENV['PLAYLIST_URI'], :playlist => {
-      :label_name => nil,
-      :title => "portal2quotes",
-      :permalink => "portal2quotes",
-      :permalink_url => "http://soundcloud.com/grandbora/sets/portal2quotes"
+      :tag_list => "electronic, entertainment, portal2, portal2quotes, portal2sounds, \"Valve Games\""
     })
   end
 

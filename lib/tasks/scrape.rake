@@ -56,7 +56,7 @@ namespace :scrape do
       :purchase_url => "http://store.steampowered.com/app/620/",
       :purchase_title => "Buy PORTAL 2 on steam",
       :default_artwork => "portal2.png",
-      :default_tags => "portal2, portal2sounds, portal2quotes, \"Valve Games\"",
+      :default_tags => "portal2, portal2quotes, portal2sounds, \"Valve Games\", electronic",
       :characters => portal2_characters
     },
     :portal2dlc => {
@@ -130,14 +130,14 @@ namespace :scrape do
 
     direct_page_mech = Mechanize.new
     direct_page_mech.pluggable_parser.default = Mechanize::Download
-    direct_page_mech.get(original_direct_link).save(file_path)
+    direct_page_mech.get(original_direct_link, [], ENV["REFERER"]).save(file_path)
 
     puts "file #{file_path} saved"
 
     track = @soundcloud_client.post('/tracks', :track => {
       :title => track_title,
       :asset_data => File.new(file_path, 'rb'),
-      :description => "by <a href='#{narrator_url}'>#{narrator}</a>(#{narrator_url}) \n hear at #{original_perma_link}",
+      :description => "by <a href='#{narrator_url}'>#{narrator}</a>(#{narrator_url}) \n this content is provided by #{metadata[:base_url][0..-1]} \n hear at #{original_perma_link}",
       :genre => 'entertainment',
       :tag_list => "#{metadata[:default_tags]} , \" #{narrator} \" ",
       :downloadable => true,
@@ -173,6 +173,7 @@ namespace :scrape do
     normalized_narrator_name = narrator.downcase.gsub(' ', '_')
     artwork_file = (metadata[:characters].keys.include? normalized_narrator_name) ?
                     "#{normalized_narrator_name}.jpg" : metadata[:default_artwork]
+
     [
       metadata[:characters][normalized_narrator_name][:url],
       File.new("public/artworks/#{metadata[:dir_name]}/#{artwork_file}", 'rb')
