@@ -137,7 +137,7 @@ namespace :scrape do
     track = @soundcloud_client.post('/tracks', :track => {
       :title => track_title,
       :asset_data => File.new(file_path, 'rb'),
-      :description => "by <a href='#{narrator_url}'>#{narrator}</a>(#{narrator_url}) \n this content is provided by #{metadata[:base_url][0..-1]} \n hear at #{original_perma_link}",
+      :description => "by <a href='#{narrator_url}'>#{narrator}</a>(#{narrator_url}) \n this content is provided by #{metadata[:base_url][0..-2]} \n hear at #{original_perma_link}",
       :genre => 'entertainment',
       :tag_list => "#{metadata[:default_tags]} , \" #{narrator} \" ",
       :downloadable => true,

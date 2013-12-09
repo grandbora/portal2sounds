@@ -83,10 +83,10 @@ namespace :scrape do
   }
 
   desc "updates existing quotes"
-  task update_tracks_metadata: :environment do
+  task :update_tracks_metadata, [:offset] do |t, args|
 
     limit = 200
-    offset = 0
+    offset = args.offset.to_i
 
     while offset < 3000 do
       puts "updating batch #{offset} - #{offset + limit} \n "
@@ -109,7 +109,7 @@ namespace :scrape do
 
     whitelist.each_with_index do |track, i|
       begin
-        puts " \n track numbder #{offset} + #{i} \n "
+        puts " \n track number #{offset} + #{i} \n "
         update_track(track)
       rescue => e
         puts "===========EXCEPTION RECEIVED=========== \n #{e} \n #{e.message} \n #{e.inspect} \n #{e.backtrace}"
@@ -122,7 +122,7 @@ namespace :scrape do
     narrator = track[:description][/<a.*>.*<\/a>/].match(/>(.*)</)[1]
     narrator_url, narrator_artwork = narrator_metada(narrator, metadata)
 
-    description = "by <a href='#{narrator_url}'>#{narrator}</a> \n this content is provided by #{metadata[:base_url][0..-1]} \n hear at #{original_perma_link}"
+    description = "by <a href='#{narrator_url}'>#{narrator}</a> \n this content is provided by #{metadata[:base_url][0..-2]} \n hear at #{original_perma_link}"
     tag_list = "#{metadata[:default_tags]} , \" #{narrator} \" "
 
     puts " \n found track #{track[:permalink_url]}  \n "
