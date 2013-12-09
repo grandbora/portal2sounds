@@ -169,7 +169,6 @@ namespace :scrape do
   end
 
   def narrator_metada(narrator, metadata)
-
     normalized_narrator_name = narrator.downcase.gsub(' ', '_')
     artwork_file = (metadata[:characters].keys.include? normalized_narrator_name) ?
                     "#{normalized_narrator_name}.jpg" : metadata[:default_artwork]
