@@ -48,6 +48,12 @@ namespace :scrape do
     end
   end
 
+  desc "deletes the given track"
+  task :delete_track, [:id] do |t, args|
+    playlist = @soundcloud_client.get(ENV['PLAYLIST_URI_TEST'])
+    puts @soundcloud_client.delete("/tracks/#{args.id}")
+  end
+
   desc "exchanges code to access token"
   task exchange_token: :environment do
     client = Soundcloud.new(:client_id => ENV['CLIENT_ID'],

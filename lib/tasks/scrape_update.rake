@@ -46,14 +46,6 @@ namespace :scrape do
     }
   }.with_indifferent_access
 
-#
-#
-#
-# TODO FILL METADATA
-#
-#
-#
-
   @metadata_container_update ={
     :portal2 => {
       :dir_name => "portal2",

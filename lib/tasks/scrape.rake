@@ -69,7 +69,7 @@ namespace :scrape do
       :dir_name => "portal2",
       :base_url => "http://dlc2.portal2sounds.com/",
       :purchase_url => "http://store.steampowered.com/app/620/",
-      :purchase_title => "Buy PORTAL 2 PeTI on steam",
+      :purchase_title => "Buy PORTAL 2 on steam",
       :default_artwork => "portal2.png",
       :default_tags => "\"Portal 2 Perpetual Testing Initiative\", portal2peti, portal2, portal2quotes, portal2sounds, \"Valve Games\", electronic",
       :characters => portal2_characters
@@ -101,8 +101,10 @@ namespace :scrape do
       page.search("li.sound_list_item").each_with_index do |li, i|
         begin
           scrape_track(li, i, page_id, metadata)
+          abort
         rescue => e
-          puts "===========EXCEPTION RECEIVED=========== \n #{e} \n #{e.message} \n #{e.inspect} \n #{e.backtrace}"
+          puts "===========EXCEPTION RECEIVED=========== \n #{e} \n #{e.message} \n #{e.inspect} \n #{e.backtrace} \n \n #{li}"
+          abort
         end
       end
     end
@@ -143,7 +145,7 @@ namespace :scrape do
       :purchase_title => metadata[:purchase_title]
     })
 
-    puts "file #{file_path} uploaded, permalink_url #{track.permalink_url}"
+    puts "file #{file_path} uploaded, permalink_url #{track.permalink_url} id : #{track.id}"
 
     @soundcloud_client.post("/tracks/#{track.id}/comments", :comment => {
       :body => text,
@@ -161,7 +163,6 @@ namespace :scrape do
                     "#{normalized_narrator_name}.jpg" : metadata[:default_artwork]
     narrator_url = (metadata[:characters].keys.include? normalized_narrator_name) ?
                     metadata[:characters][normalized_narrator_name][:url] : false
-
 
     [
       narrator_url,
