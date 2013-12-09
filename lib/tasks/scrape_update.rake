@@ -83,9 +83,9 @@ namespace :scrape do
   }
 
   desc "updates existing quotes"
-  task :update_tracks_metadata, [:offset] do |t, args|
+  task :update_tracks_metadata, [:offset, :limit] do |t, args|
 
-    limit = 200
+    limit = args.limit.to_i
     offset = args.offset.to_i
 
     while offset < 3000 do
@@ -100,7 +100,7 @@ namespace :scrape do
 
   private
   def update_batch(limit, offset)
-    tracks = @soundcloud_client.get('/me/tracks', :limit => limit, :offset => offset)
+    tracks = @soundcloud_client.get('/me/tracks', :limit => limit, :offset => offset, :order => 'created_at')
     whitelist = []
 
     tracks.each do |track|
@@ -137,7 +137,30 @@ namespace :scrape do
       :tag_list => tag_list
     })
 
-    puts "track #{track[:permalink_url]} is updated"
+    puts " \n checking comments of track #{track[:permalink]} \n comment count is : #{track[:comment_count]} \n"
+    comment_found = false
+
+    @soundcloud_client.get("/tracks/#{track.id}/comments").each do |comment|
+      if comment_found
+        @soundcloud_client.delete("/tracks/#{track.id}/comments/#{comment.id}")
+        puts "comment #{comment.id} deleted"
+      end
+
+      comment_found = true if comment.user.username == "grandbora"
+    end
+
+    if comment_found == false
+      puts "adding comment to #{track[:permalink]}"
+
+      @soundcloud_client.post("/tracks/#{track.id}/comments", :comment => {
+        :body => track[:title],
+        :timestamp => 10
+      })
+
+      puts "comment #{track[:title]} added"
+    end
+
+    puts "track #{track[:permalink]} is updated"
   end
 
   def narrator_metada(narrator, metadata)
