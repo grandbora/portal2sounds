@@ -68,9 +68,9 @@ namespace :scrape do
       :tag_list => "#{metadata_container.default_tags} , #{narrator[:tags]}",
       :downloadable => true,
       :sharing => "public",
-      :artwork_data => narrator[:artwork]
-      # :purchase_url => metadata_container.purchase_url, # TODO Write edit script
-      # :purchase_title => metadata_container.purchase_title
+      :artwork_data => narrator[:artwork],
+      :purchase_url => metadata_container.purchase_url,
+      :purchase_title => metadata_container.purchase_title
     })
 
     puts "file #{file_path} uploaded, permalink_url #{track.permalink_url} id : #{track.id}"
