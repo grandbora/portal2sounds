@@ -2,7 +2,7 @@ require 'mechanize'
 require 'soundcloud'
 
 namespace :scrape do
-  @soundcloud_client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
+  # @soundcloud_client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN_GB'])
 
     portal2_characters = {
     :announcer => {

@@ -1,7 +1,7 @@
 require 'soundcloud'
 
 namespace :update do
-  @soundcloud_client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
+  # @soundcloud_client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN_GB'])
   @playlist = []
 
   desc "updates the given playlist content with the most popular quotes"

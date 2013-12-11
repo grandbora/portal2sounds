@@ -1,8 +1,13 @@
 require 'mechanize'
 require 'soundcloud'
+require 'models/sc_helper.rb'
 
 namespace :scrape do
-  @soundcloud_client = Soundcloud.new(:access_token => ENV['ACCESS_TOKEN'])
+
+  task delete_user_tracks: :environment do
+    ScHelper.new(ENV['ACCESS_TOKEN_GQ']).delete_user_tracks
+  end
+
 
   desc "gets the users playlists"
   task playlists: :environment do
