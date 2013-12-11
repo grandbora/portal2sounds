@@ -13,7 +13,7 @@ class ScHelper
       batch.each do |track|
         begin
           delete_track(track)
-        rescue Exception => e
+        rescue e
           puts "===========EXCEPTION RECEIVED=========== \n #{e} \n #{e.message} \n #{e.inspect} \n #{e.backtrace} \n \n #{track}"
         end
       end
