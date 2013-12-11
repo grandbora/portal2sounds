@@ -1,4 +1,4 @@
-class MetadataContainer  
+class MetadataContainer
 
   @metadata
 
@@ -12,6 +12,14 @@ class MetadataContainer
 
   def default_tags
     @metadata[:default_tags]
+  end
+
+  def purchase_url
+    @metadata[:purchase_url]
+  end
+
+  def purchase_title
+    @metadata[:purchase_title]
   end
 
   def narrator(narrator_name)
