@@ -31,6 +31,7 @@ namespace :scrape do
       page.search("li.sound_list_item").each_with_index do |li, i|
         begin
           scrape_track(li, i, page_id, metadata_container)
+          sleep(60)
         rescue => e
           puts "===========EXCEPTION RECEIVED=========== \n #{e} \n #{e.message} \n #{e.inspect} \n #{e.backtrace} \n \n #{li}"
         end
@@ -41,12 +42,12 @@ namespace :scrape do
   def scrape_track(li, i, page_id, metadata_container)
     id = li.get_attribute("onclick").split("'")[1]
     text = li.search("a b").first.content
-    
+
     original_direct_link = "#{metadata_container.base_url}sound.php?id=#{id}&stream"
     original_perma_link = "#{metadata_container.base_url}#{id}"
     file_name_part = text[0..25].downcase.gsub(/[^0-9a-z ]/i, '').gsub(' ', '-')
     file_path = "public/downloads/#{file_name_part}-#{id}.mp3"
-    
+
     narrator = metadata_container.narrator(li.search(".whospan b").first.content)
     track_title = "#{narrator[:title]}: #{text}"
     description = narrator[:url] ? "by <a href='#{narrator[:url]}'>#{narrator[:title]}</a>" : "by #{narrator[:title]}"

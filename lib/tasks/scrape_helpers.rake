@@ -5,7 +5,7 @@ require 'models/sc_helper.rb'
 namespace :scrape do
 
   task delete_user_tracks: :environment do
-    ScHelper.new(ENV['ACCESS_TOKEN_GQ']).delete_user_tracks
+    ScHelper.new(ENV['ACCESS_TOKEN_GQ']).delete_user_tracks(ENV['USER_ID_GQ'])
   end
 
 
