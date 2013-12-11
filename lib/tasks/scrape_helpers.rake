@@ -4,10 +4,10 @@ require 'models/sc_helper.rb'
 
 namespace :scrape do
 
+  desc "delete_user_tracks"
   task delete_user_tracks: :environment do
     ScHelper.new(ENV['ACCESS_TOKEN_GQ']).delete_user_tracks(ENV['USER_ID_GQ'])
   end
-
 
   desc "gets the users playlists"
   task playlists: :environment do
@@ -58,6 +58,14 @@ namespace :scrape do
   task :delete_track, [:id] do |t, args|
     playlist = @soundcloud_client.get(ENV['PLAYLIST_URI_TEST'])
     puts @soundcloud_client.delete("/tracks/#{args.id}")
+  end
+
+  desc "auth_url"
+  task auth_url: :environment do
+    client = Soundcloud.new(:client_id => ENV['CLIENT_ID'],
+                            :client_secret => ENV['CLIENT_SECRET'],
+                            :redirect_uri => ENV['REDIRECT_URI'])
+    puts client.authorize_url(:scope => "non-expiring")
   end
 
   desc "exchanges code to access token"
