@@ -81,7 +81,7 @@ namespace :scrape do
     CommentHelper.new.comments(file_path, text).reverse.each do |comment|
       @soundcloud_client.post("/tracks/#{track.id}/comments", :comment => comment)
     end
-    
+
     puts "comment #{text} added"
     puts "\n END OF TRACK #{id} \n"
   end
