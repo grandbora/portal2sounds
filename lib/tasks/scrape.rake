@@ -1,6 +1,7 @@
 require 'mechanize'
 require 'soundcloud'
 require 'models/metadata_container.rb'
+require 'models/comment_helper.rb'
 
 namespace :scrape do
 
@@ -76,10 +77,9 @@ namespace :scrape do
 
     puts "file #{file_path} uploaded, permalink_url #{track.permalink_url} id : #{track.id}"
 
-    @soundcloud_client.post("/tracks/#{track.id}/comments", :comment => {
-      :body => text,
-      :timestamp => 10
-    })
+    CommentHelper.new.comments(file_path, text).each do |comment|
+      @soundcloud_client.post("/tracks/#{track.id}/comments", :comment => comment)
+    end
 
     puts "comment #{text} added"
 

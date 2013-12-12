@@ -9,6 +9,12 @@ namespace :scrape do
     ScHelper.new(ENV['ACCESS_TOKEN_GQ']).delete_user_tracks(ENV['USER_ID_GQ'])
   end
 
+  desc "get_track"
+  task get_track: :environment do
+    ScHelper.new(ENV['ACCESS_TOKEN_GQ']).track(124394541)
+  end
+  
+
   desc "gets the users playlists"
   task playlists: :environment do
     @soundcloud_client.get('/me/playlists').each do |playlist|

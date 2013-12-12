@@ -30,5 +30,8 @@ class ScHelper
     @sc_client.delete("/tracks/#{track.id}")
   end
 
-
+  def track(track_id)
+    puts @sc_client.get("/tracks/#{track_id}")
+  end
+  
 end

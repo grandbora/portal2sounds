@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 
 gem 'mechanize'
 gem 'soundcloud'
+gem 'taglib-ruby'
 
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
