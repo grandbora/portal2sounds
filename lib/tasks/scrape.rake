@@ -53,6 +53,7 @@ namespace :scrape do
     track_title = "#{narrator[:title]}: #{text}"
     description = narrator[:url] ? "by <a href='#{narrator[:url]}'>#{narrator[:title]}</a>" : "by #{narrator[:title]}"
     description += " \n this content is provided by #{metadata_container.base_url[0..-2]} \n hear at #{original_perma_link}"
+    description += " \n text : <i>#{text}</i>"
 
     puts "\n Track #{page_id} - #{i} \n downloading file #{file_path} from #{original_direct_link}"
 
@@ -77,12 +78,11 @@ namespace :scrape do
 
     puts "file #{file_path} uploaded, permalink_url #{track.permalink_url} id : #{track.id}"
 
-    CommentHelper.new.comments(file_path, text).each do |comment|
+    CommentHelper.new.comments(file_path, text).reverse.each do |comment|
       @soundcloud_client.post("/tracks/#{track.id}/comments", :comment => comment)
     end
-
+    
     puts "comment #{text} added"
-
     puts "\n END OF TRACK #{id} \n"
   end
 end
